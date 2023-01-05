@@ -7,10 +7,18 @@ This set of GitHub Actions take advantage of the [`configure-aws-credentials` ac
 We have two actions:
 1. [`small-collections.yml`](./small-collections.yml)
 2. [`large-collections.yml`](./large-collections.yml)
+3. [`manual-cleanup.yml`](./manual-cleanup.yml)
 
 `small-collections.yml` takes care of collections that do not produce hundreds of thousands of `insert`s and/or `update`s daily. These collections _could_ be moved every few days or weekly. At this moment, we are executing this action daily like `large-collections.yml`
 
 `large-collections.yml` takes care of the collections that produce hundreds of thousands of records daily. The move these records "by the hour" instead of moving the whole day in one command. 
+
+`manual-cleanup.yml` can be used to move specific dates out of a collection-operation prefix to `tobeprocessed/`. It takes 5 inputs:
+1. **collection** name - limited to hard-coded choices in our gh action file
+2. **operation** type - limited to hard-coded choices in our gh action file
+3. **year** - 4 digit year (i.e. 2022)
+4. **month** - 2 digit month (i.e. 01)
+5. **day** - 2 digit day (i.e. 09)
 
 To illustrate:
 
@@ -39,5 +47,5 @@ GitHub Actions can produce a maximum of 256 jobs. At the moment, we have 2 colle
 4 environment variables are required for this Action to run:
 1. AWS_ACCESS_KEY_ID
 2. AWS_SECRET_ACCESS_KEY
-3. S3_SRC_BUCKET (s3 source path)
-4. S3_DST_BUCKET (s3 destination path)
+3. S3_SRC_BUCKET (s3 source path - URI without trailing `/`) 
+4. S3_DST_BUCKET (s3 destination path - URI without trailing `/`)
