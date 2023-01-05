@@ -1,0 +1,51 @@
+name: Moving small collections
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
+
+jobs:
+  deploy:
+    name: Move small collections to tobeprocessed
+    strategy:
+      matrix:
+        collection: ["students", "institutions", "contacts", "users"]
+        operation: ["insert", "update"]
+
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Copy files to the tobeprocessed prefix
+        env:
+          S3_SRC_BUCKET: ${{ secrets.S3_SRC_BUCKET }}
+          S3_DST_BUCKET: ${{ secrets.S3_DST_BUCKET }}
+        run: |
+          day=$(date --date="yesterday" +"%d")
+          month=$(date --date="yesterday" +"%m")
+          year=$(date --date="yesterday" +"%Y")
+          log_filename=${{ matrix.collection }}_${year}${month}${day}_${{ matrix.operation }}-$(date +"%Y%m%d").log
+
+          aws s3 mv \
+          $S3_SRC_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${year}/month=${month}/day=${day}/ \
+          $S3_DST_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${year}/month=${month}/day=${day}/ \
+          --recursive \
+          --no-progress \
+          > $log_filename
+
+          if [ -s ${log_filename} ]
+          then
+              aws s3 mv ./$log_filename $S3_DST_BUCKET/aws-mv-logs/$log_filename --no-progress
+          else
+              echo "Skipping $log_filename upload."
+          fi
