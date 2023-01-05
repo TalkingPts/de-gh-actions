@@ -24,6 +24,18 @@ on:
           - update
           - delete
           - replace
+      year:
+        type: string
+        description: "Year (YYYY format)"
+        required: true
+      month:
+        type: string
+        description: "Month (MM format)"
+        required: true 
+      day:
+        type: string
+        description: "Day (DD format)"
+        required: true
 
 jobs:
   deploy:
@@ -78,14 +90,11 @@ jobs:
           S3_SRC_BUCKET: ${{ secrets.S3_SRC_BUCKET }}
           S3_DST_BUCKET: ${{ secrets.S3_DST_BUCKET }}
         run: |
-          day=$(date --date="yesterday" +"%d")
-          month=$(date --date="yesterday" +"%m")
-          year=$(date --date="yesterday" +"%Y")
-          log_filename=${{ matrix.collection }}_${year}${month}${day}_${{ matrix.operation }}-$(date +"%Y%m%d").log
+          log_filename=${{ matrix.collection }}_${{ inputs.year }}${{ inputs.month }}${{ inputs.day }}_${{ matrix.operation }}-$(date +"%Y%m%d").log
 
           aws s3 mv \
-          $S3_SRC_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${year}/month=${month}/day=${day}/hour=${{ matrix.hour }}/ \
-          $S3_DST_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${year}/month=${month}/day=${day}/hour=${{ matrix.hour }}/ \
+          $S3_SRC_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${{ inputs.year }}/month=${{ inputs.month }}/day=${{ inputs.day }}/hour=${{ matrix.hour }}/ \
+          $S3_DST_BUCKET/${{ matrix.collection }}/${{ matrix.operation }}/year=${{ inputs.year }}/month=${{ inputs.month }}/day=${{ inputs.day }}/hour=${{ matrix.hour }}/ \
           --recursive \
           --no-progress \
           > $log_filename
