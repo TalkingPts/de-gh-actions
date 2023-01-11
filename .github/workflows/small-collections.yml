@@ -10,7 +10,7 @@ jobs:
     name: Move small collections to tobeprocessed
     strategy:
       matrix:
-        collection: ["students", "institutions", "contacts", "users"]
+        collection: ["students", "institutions", "contacts", "users", "translationorders"]
         operation: ["insert", "update"]
 
     runs-on: ubuntu-latest
